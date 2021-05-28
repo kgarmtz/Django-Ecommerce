@@ -2,6 +2,8 @@ from django.db import models
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
+# Local Managers
+from .managers import VariationManager
 
 
 # Importing our Category model
@@ -47,3 +49,32 @@ class Product(TimeStamped):
     # String representation of our model
     def __str__(self):
         return self.product_name
+
+
+
+class Variation(models.Model):
+    # variation_category choices 
+    VARIATION_CHOICES = (
+        ('color', 'color'),
+        ('size', 'size'),
+    )
+    
+    # One product can have many variations, if we doesn't provide the 'related_name' parameter
+    # we can access instead by giving the default name of the manager, that's 'variation_set'  
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variations')
+    # We can select the variation that the product will have. It can be color or size
+    variation_category = models.CharField(max_length=100, choices=VARIATION_CHOICES)
+    # We can specify the corresponding value to the variation_category that was selected.
+    #  Ex.  variation_category = color and then variation_value = red
+    variation_value     = models.CharField(max_length=100)
+    # This field is useful when we want to disable any of the product variations 
+    is_active           = models.BooleanField(default=True)
+    created_date        = models.DateTimeField(auto_now=True)
+    # Linking the custom manager for this model
+    objects = VariationManager()
+
+    # String representation of our model
+    def __str__(self):
+        return self.variation_value
+        # return self.product.product_name + ': ' + self.variation_value
+

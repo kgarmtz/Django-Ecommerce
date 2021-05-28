@@ -81,13 +81,19 @@
           >Store</a
         >
         <div class="col-lg col-md-6 col-sm-12 col">
-          <form action="#" class="search">
+          <!-- action: We specify the URL where the data contained within the form will be sent -->
+          <form
+            action="{% url 'store_app:search_product' %}"
+            class="search"
+            method="GET"
+          >
             <div class="input-group w-100">
               <input
                 type="text"
                 class="form-control"
                 style="width: 60%"
                 placeholder="Search"
+                name="keyword"
               />
 
               <div class="input-group-append">
@@ -110,11 +116,13 @@
                 <a href="./register.html"> Register</a>
               </div>
             </div>
-            <a href="./cart.html" class="widget-header pl-3 ml-3">
+            <a href="{% url 'cart_app:cart' %}" class="widget-header pl-3 ml-3">
               <div class="icon icon-sm rounded-circle border">
                 <i class="fa fa-shopping-cart"></i>
               </div>
-              <span class="badge badge-pill badge-danger notify">0</span>
+              <span class="badge badge-pill badge-danger notify"
+                >{{cart_products}}</span
+              >
             </a>
           </div>
           <!-- widgets-wrap.// -->
