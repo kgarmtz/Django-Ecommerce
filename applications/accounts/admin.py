@@ -15,6 +15,8 @@ class AccountAdmin(UserAdmin):
     # Creating a filter that will filter out the user by first_name and last_name
     list_filter = ('first_name', 'last_name')
     filter_horizontal = ()
+     # We can disable a user account directly on the admin site, like so:
+    list_editable = ('is_active', )
     # We use fieldsets to make the 'password' read-only
     fieldsets = ()
 

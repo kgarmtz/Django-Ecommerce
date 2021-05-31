@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
+from django.contrib.messages import constants as messages
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -148,3 +148,18 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# MESSAGE_TAGS: This sets the mapping of message level to message tag, 
+# which is typically rendered as a CSS class in HTML. For this reason,
+# we only have to specify those values which need to be overrided...
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger',
+}
+
+# SMTP (Simple Mail Transfer Protocol) is an internet standard 
+# communication protocol for sending emails over the Internet.
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'kevingarciaescom@gmail.com'
+EMAIL_HOST_PASSWORD = '4DvraqRYcN34wXx'
+EMAIL_USE_TLS = True

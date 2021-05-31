@@ -15,6 +15,8 @@ class Account(AbstractBaseUser):
     # is_staff: if the user has permission to access to the admin site
     is_staff        = models.BooleanField(default=False)
     # is_active: if the user account can be used for authentication
+    # A user must verify their email address to activate their account (is_active=True).
+    # If the account doesn't get activated, the user would not be able to access to the application.
     is_active       = models.BooleanField(default=False)
     is_superuser    = models.BooleanField(default=False)
     # We have to indicate with which field the user will log in into our application
