@@ -11,6 +11,6 @@ urlpatterns = [
     path('store/category/<slug:category_slug>/', views.store, name='products_by_category'),
     # URL for the product detail
     path('store/category/<slug:category_slug>/<slug:product_slug>', views.product_detail, name='product_detail'),
-    # URLs for performing searching request
+    # URL for performing searching request
     path('store/search/', views.search_product, name='search_product'),
 ]

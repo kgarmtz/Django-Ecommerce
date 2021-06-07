@@ -63,7 +63,7 @@
                       <div class="input-group-append">
                         <form action="{% url 'cart_app:add_cart' cart_item.product.id %}" method="POST">
                           {% csrf_token %}
-                          <!-- Looping through all the varitaions that the CartItem has, in order to
+                          <!-- Looping through all the variations that the CartItem has, in order to
                           send to the server the following url: "?variation_category=variation_value" -->
                           {% for variation in cart_item.variations.all %}
                           <input type="hidden" name="{{ variation.variation_category }}"
@@ -124,7 +124,7 @@
             <p class="text-center mb-3">
               <img src="{% static 'images/misc/payments.png' %}" height="26" />
             </p>
-            <a href="./place-order.html" class="btn btn-primary btn-block">
+            <a href="{% url 'cart_app:checkout' %}" class="btn btn-primary btn-block">
               Checkout
             </a>
             <a href="{% url 'store_app:store' %}" class="btn btn-light btn-block">Continue Shopping</a>

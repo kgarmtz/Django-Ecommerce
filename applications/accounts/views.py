@@ -6,23 +6,27 @@ from django.contrib.auth import authenticate
 # We do this in order to avoid a TypeError between the functions that have the same name
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
-# Decorators
+# Login Decorator
 from django.contrib.auth.decorators import login_required
 # Django sites framework
 from django.contrib.sites.shortcuts import get_current_site
-
 # Imports for the Verification Email Process
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
-
-
 # Local Models
 from .models import Account
+# External Models
+from applications.carts.models import Cart, CartItem
 # Local Forms
 from .forms import RegistrationForm
+# External View Functions
+from applications.carts.views import _get_session_id
+# Third Party Apps
+import requests
+
 
 # View: Register a new user in our system
 def register(request):
@@ -90,7 +94,7 @@ def register(request):
 
 # View: Login authentication
 def login(request):
-    print(f'POST: {request.POST}')
+    print(f'POST-LOGIN: {request.POST}')
     if request.method == 'POST':
         # Retrieving the email and the password sent in the URL by the POST request
         email    = request.POST['email']
@@ -99,9 +103,80 @@ def login(request):
         user = authenticate(email=email, password=password)
         # If the user gets authenticated successfully in our system, then
         if user is not None:
+            try:
+                # Before the login process, we have to check if there're already CartItems added
+                cart = Cart.objects.get(cart_id=_get_session_id(request))
+                # Verifying if the current Cart has CartItems
+                is_any_cart_item = CartItem.objects.filter(cart=cart).exists()
+
+                if is_any_cart_item:
+                    # Getting all the CartItems inside the current Cart
+                    cart_items = CartItem.objects.filter(cart=cart)
+                    # Product: Shirt, Variations: Blue and Large
+                    cart_variations = []
+                    cart_indices = []
+                    # Getting all the CartItem variations form the current Cart
+                    for cart_item in cart_items:
+                        variations = cart_item.variations.all()
+                        # Where the variation gets positioned in list, the index will be in the same position
+                        cart_variations.append(list(variations))
+                        cart_indices.append(cart_item.id)
+                        
+                    # Getting all the CartItem variations from all the user products that's about to login
+                    user_items = CartItem.objects.filter(user=user)
+                    # Obtaining all the variations and the indices that all the user_items found have
+                    user_variations  = []
+                    existing_indices = []
+                    # Adding all the user_item variations inside their corresponding list
+                    for user_item in user_items:
+                        # Saving the variations of that particular CartItem
+                        user_variations.append(list(user_item.variations.all()))
+                        # Saving the index of that particular CartItem 
+                        existing_indices.append(user_item.id)
+
+                    # We have to compare the cart_variations (current Cart) with the user_variations (current User)
+                    for cart_variation in cart_variations:
+                        if cart_variation in user_variations:
+                            # Getting the index of the "cart_variation" inside the list of user_variations
+                            index = user_variations.index(cart_variation)
+                            user_item_id = existing_indices[index]
+                            # Finally we have to retrive that CartItem from the user Cart and increase its quantity
+                            user_item = CartItem.objects.get(id=user_item_id) 
+                            user_item.quantity += 1
+                            user_item.save()
+                        else:
+                            print(f"CURRENT VARIATIONS LIST: {cart_variation}")
+                            index = cart_variations.index(cart_variation)
+                            cart_item_id = cart_indices[index]
+                            cart_item = CartItem.objects.get(id=cart_item_id)
+                            cart_item.user = user
+                            cart_item.save()
+
+            # The except gets executed if we don't have any CartItem inside the Cart
+            except:
+                pass
+            
             auth_login(request, user)
             messages.success(request, 'You are now logged in')
-            return redirect('account_app:dashboard')
+            # If the user comes from the "/cart/checkout/" it means the
+            # he already has products inside his Cart
+            # HTTP_REFERER: It returns the page from what you came from 
+            previous_url = request.META.get('HTTP_REFERER')
+            print(f'PREVIOUS URL: {previous_url}')
+            try:
+                # From this url: http://127.0.0.1:8000/account/login/?next=/cart/checkout/
+                # We store inside 'query': next=/cart/checkout/ 
+                query = requests.utils.urlparse(previous_url).query
+                key, url = query.split('=')
+                params = {
+                    key: url
+                }
+                
+                if 'next' in params:
+                    nextPage = params['next']
+                    return redirect(nextPage)
+            except:
+                return redirect('account_app:dashboard')
 
         else:
             messages.error(request, 'Invalid login credentials')

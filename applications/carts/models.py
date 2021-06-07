@@ -14,12 +14,14 @@ class Cart(models.Model):
         return self.cart_id
 
 class CartItem(models.Model):
-    # One Product can be relationated to many CardItems
+    # One Account can have many CardItems, but one CardItem is meant for one Account
+    user = models.ForeignKey(Account, on_delete=models.CASCADE, null=True)
+    # One Product can be (relationated to) in many CardItems
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     # One CartItem can have many Variations and one Variation can belong to many CartItems
     variations = models.ManyToManyField(Variation, blank=True)
     # One Cart can have to many CartItems, but one CartItem must belong only to one Cart
-    cart    = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    cart    = models.ForeignKey(Cart, on_delete=models.CASCADE, null=True)
     quantity = models.IntegerField()
     is_active = models.BooleanField(default=True)
 
